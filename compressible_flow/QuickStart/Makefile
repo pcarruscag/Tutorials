@@ -26,7 +26,7 @@
 TIME=/usr/bin/time
 
 all: restart_flow.dat NACA0012_coef_pres.pdf NACA0012_pressure_field.png \
-     adj/restart_adj_cd.dat dadj/restart_adj_cd.dat \
+     dadj/restart_adj_cd.dat \
      NACA0012_surf_sens.pdf \
      NACA0012_coef_pres.png NACA0012_surf_sens.png
 
@@ -39,14 +39,6 @@ NACA0012_coef_pres.pdf: NACA0012_coef_pres.tex restart_flow.dat surface_flow.csv
 NACA0012_pressure_field.png: make_field_shots.py restart_flow.dat flow.vtu
 	python3 make_field_shots.py
 
-adj/restart_adj_cd.dat: adj/inv_adj_NACA0012.cfg mesh_NACA0012_inv.su2 \
-                        restart_flow.dat
-	cd adj \
-	&& ln -sf ../mesh_NACA0012_inv.su2 ./mesh_NACA0012_inv.su2 \
-	&& ln -sf ../restart_flow.dat ./solution_flow.dat \
-	&& $(TIME) -o su2_cfd_adj_time.out \
-	           SU2_CFD inv_adj_NACA0012.cfg | tee su2_cfd_adj.log
-
 dadj/restart_adj_cd.dat: dadj/inv_dadj_NACA0012.cfg mesh_NACA0012_inv.su2 \
                          restart_flow.dat
 	cd dadj \
@@ -56,8 +48,7 @@ dadj/restart_adj_cd.dat: dadj/inv_dadj_NACA0012.cfg mesh_NACA0012_inv.su2 \
 	           SU2_CFD_AD inv_dadj_NACA0012.cfg | tee su2_cfd_ad_dadj.log
 
 NACA0012_surf_sens.pdf: NACA0012_surf_sens.tex \
-                        adj/restart_adj_cd.dat dadj/restart_adj_cd.dat \
-                        adj/surface_adjoint.csv dadj/surface_adjoint.csv
+                        dadj/restart_adj_cd.dat dadj/surface_adjoint.csv
 	texfot -q lualatex $<
 
 %.png: %.pdf
